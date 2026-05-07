@@ -34,12 +34,14 @@ let TaskService = class TaskService {
         return task;
     }
     create(task) {
-        const { tittle, description, isCompleted } = task;
+        const { tittle, description, isCompleted, priority, tags } = task;
         const newTask = {
             id: this.tasks.length + 1,
             tittle,
             description,
             isCompleted,
+            priority,
+            tags,
         };
         this.tasks.push(newTask);
         return this.tasks;
