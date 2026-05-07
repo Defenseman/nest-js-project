@@ -38,4 +38,7 @@ export declare class TaskService {
         description: string;
         isCompleted: boolean;
     };
+    getHello(): Promise<{
+        message: string;
+    }>;
 }

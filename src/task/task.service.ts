@@ -64,4 +64,8 @@ export class TaskService {
     this.tasks = this.tasks.filter((t) => t.id !== task.id);
     return task;
   }
+
+  async getHello() {
+    return { message: "Hello from TaskService!" };
+  }
 }

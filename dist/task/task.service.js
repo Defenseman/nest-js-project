@@ -64,6 +64,9 @@ let TaskService = class TaskService {
         this.tasks = this.tasks.filter((t) => t.id !== task.id);
         return task;
     }
+    async getHello() {
+        return { message: "Hello from TaskService!" };
+    }
 };
 exports.TaskService = TaskService;
 exports.TaskService = TaskService = __decorate([
