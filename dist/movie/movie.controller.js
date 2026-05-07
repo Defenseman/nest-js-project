@@ -29,7 +29,10 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], MovieController.prototype, "getMovies", null);
 exports.MovieController = MovieController = __decorate([
-    (0, common_1.Controller)("movie"),
+    (0, common_1.Controller)({
+        path: "movies",
+        host: ["localhost", "127.0.0.1"],
+    }),
     __metadata("design:paramtypes", [movie_service_1.MovieService])
 ], MovieController);
 //# sourceMappingURL=movie.controller.js.map
