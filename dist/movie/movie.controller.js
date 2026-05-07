@@ -8,6 +8,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MovieController = void 0;
 const common_1 = require("@nestjs/common");
@@ -20,6 +23,30 @@ let MovieController = class MovieController {
     async getMovies() {
         return this.movieService.getHello();
     }
+    getMovieById(id) {
+        return { id };
+    }
+    createMovie(body) {
+        return { body };
+    }
+    getAllHeaders(headers) {
+        return { headers };
+    }
+    getUserAgentHeader(headers) {
+        return { headers };
+    }
+    getRequest(req) {
+        return {
+            headers: req.headers,
+            url: req.url,
+            method: req.method,
+            query: req.query,
+            params: req.params,
+        };
+    }
+    getResponse(res) {
+        return res.status(201).json({ message: "Hello from response!" });
+    }
 };
 exports.MovieController = MovieController;
 __decorate([
@@ -28,6 +55,48 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], MovieController.prototype, "getMovies", null);
+__decorate([
+    (0, common_1.Get)(":id"),
+    __param(0, (0, common_1.Param)("id")),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], MovieController.prototype, "getMovieById", null);
+__decorate([
+    (0, common_1.Post)(),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], MovieController.prototype, "createMovie", null);
+__decorate([
+    (0, common_1.Get)("headers"),
+    __param(0, (0, common_1.Headers)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], MovieController.prototype, "getAllHeaders", null);
+__decorate([
+    (0, common_1.Get)("user-agent"),
+    __param(0, (0, common_1.Headers)("user-agent")),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], MovieController.prototype, "getUserAgentHeader", null);
+__decorate([
+    (0, common_1.Get)("request"),
+    __param(0, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Object)
+], MovieController.prototype, "getRequest", null);
+__decorate([
+    (0, common_1.Get)("response"),
+    __param(0, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], MovieController.prototype, "getResponse", null);
 exports.MovieController = MovieController = __decorate([
     (0, common_1.Controller)({
         path: "movies",
