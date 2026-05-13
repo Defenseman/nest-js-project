@@ -12,7 +12,7 @@ import { getTypeOrmConfig } from "./config/typeorm.config";
     ConfigModule.forRoot({
       isGlobal:true, // Make the configuration available globally
     }),
-     TypeOrmModule.forRootAsync({
+    TypeOrmModule.forRootAsync({ // Asynchronously load TypeORM configuration to make shure ConfigService is available
       imports: [ConfigModule], // Import ConfigModule to use ConfigService
       useFactory: getTypeOrmConfig, // Use the factory function to get TypeORM configuration
       inject: [ConfigService], // Inject ConfigService to access environment variables
