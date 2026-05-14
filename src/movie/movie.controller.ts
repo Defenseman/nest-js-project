@@ -1,6 +1,6 @@
-import { Body, Controller, Get, Post } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put } from "@nestjs/common";
 import { MovieService } from "./movie.service";
-import { CreateMovieDto } from "./dto/create-movie.dto";
+import { MovieDto } from "./dto/movie.dto";
 
 @Controller({
   path: "movies",
@@ -10,12 +10,32 @@ export class MovieController {
   constructor(private readonly movieService: MovieService) {}
 
   @Get()
-  async findAll() {
-    return await this.movieService.findAll();
+  findAll() {                                   // do not have to specify async, await here because we are returning the promise directly, and NestJS will handle it correctly.
+    return this.movieService.findAll();        
+  }
+
+  @Get(":id")
+  findById(@Param("id") id: string) {
+    return this.movieService.findById(+id); // Convert the id from string to number using the unary plus operator 
   }
 
   @Post()
-  async create(@Body() dto: CreateMovieDto) {
-    return await this.movieService.create(dto);
+  create(@Body() dto: MovieDto) {
+    return this.movieService.create(dto);
+  }
+
+  @Put(":id")
+  update(@Param("id") id: string, @Body() dto: MovieDto) {
+    return this.movieService.update(+id, dto);
+  }
+
+  @Patch(":id")
+  patch(@Param("id") id: string, @Body() dto: Partial<MovieDto>) {
+    return this.movieService.patch(+id, dto);
+  }
+
+  @Delete(":id")
+  delete(@Param("id") id: string) {
+    return this.movieService.delete(+id);
   }
 }
