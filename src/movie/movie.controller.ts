@@ -16,7 +16,7 @@ export class MovieController {
 
   @Get(":id")
   findById(@Param("id") id: string) {
-    return this.movieService.findById(+id); // Convert the id from string to number using the unary plus operator 
+    return this.movieService.findById(id); // Convert the id from string to number using the unary plus operator 
   }
 
   @Post()
@@ -26,16 +26,16 @@ export class MovieController {
 
   @Put(":id")
   update(@Param("id") id: string, @Body() dto: MovieDto) {
-    return this.movieService.update(+id, dto);
+    return this.movieService.update(id, dto);
   }
 
   @Patch(":id")
   patch(@Param("id") id: string, @Body() dto: Partial<MovieDto>) {
-    return this.movieService.patch(+id, dto);
+    return this.movieService.patch(id, dto);
   }
 
   @Delete(":id")
   delete(@Param("id") id: string) {
-    return this.movieService.delete(+id);
+    return this.movieService.delete(id);
   }
 }

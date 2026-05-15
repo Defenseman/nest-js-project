@@ -6,6 +6,9 @@ import { MovieModule } from "./movie/movie.module";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { ConfigModule, ConfigService } from "@nestjs/config"; // needed to load environment variables from .env file
 import { getTypeOrmConfig } from "./config/typeorm.config";
+import { ReviewsModule } from './reviews/reviews.module';
+import { PosterModule } from './poster/poster.module';
+import { ActorsModule } from './actors/actors.module';
 
 @Module({
   imports: [
@@ -18,7 +21,7 @@ import { getTypeOrmConfig } from "./config/typeorm.config";
       inject: [ConfigService], // Inject ConfigService to access environment variables
     }),
     TaskModule, 
-    MovieModule,
+    MovieModule, ReviewsModule, PosterModule, ActorsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

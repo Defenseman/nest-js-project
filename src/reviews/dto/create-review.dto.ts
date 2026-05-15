@@ -1,0 +1,16 @@
+import { IsNotEmpty, IsNumber, IsString, Max, Min } from "class-validator";
+
+export class CreateReviewDto {
+    @IsString()
+    @IsNotEmpty()
+    movieId: string;
+
+    @IsString()
+    @IsNotEmpty()
+    text: string;
+    
+    @IsNumber()
+    @Min(0.0)
+    @Max(10.0)
+    rating: number;
+}

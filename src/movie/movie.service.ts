@@ -1,12 +1,18 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { MovieEntity } from "./entities/movie.entity";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { In, Repository } from "typeorm";
 import { MovieDto } from "./dto/movie.dto";
+import { ActorEntity } from "src/actors/entities/actor.entity";
 
 @Injectable()
 export class MovieService {
-  constructor(@InjectRepository(MovieEntity) private readonly movieRepository: Repository<MovieEntity>) {}
+  constructor(
+    @InjectRepository(MovieEntity) 
+    private readonly movieRepository: Repository<MovieEntity>,
+    @InjectRepository(ActorEntity)
+    private readonly actorsRepository: Repository<ActorEntity>
+  ) {}
 
   async findAll(): Promise<MovieEntity[]> {
     return await this.movieRepository.find({ 
@@ -19,7 +25,7 @@ export class MovieService {
     });
   }
 
-  async findById(id: number): Promise<MovieEntity> {
+  async findById(id: string): Promise<MovieEntity> {
     const movie = await this.movieRepository.findOneBy({ 
       id
     });
@@ -32,11 +38,31 @@ export class MovieService {
   }
 
   async create(movieData: MovieDto): Promise<MovieEntity> {
-    const movie = this.movieRepository.create(movieData); // Create a new movie entity from the DTO outside of the database. 
+    const { title, description, releaseYear, rating, genre, isWatched, actorIds } = movieData;
+
+    const actors = await this.actorsRepository.find({
+      where: {
+        id: In(actorIds)
+      }
+    })
+
+    if(!actors || actors.length !== actorIds.length) {
+      throw new NotFoundException("One or more actors not found");
+    }
+
+    const movie = this.movieRepository.create({
+      title,
+      description,
+      releaseYear,
+      rating,
+      genre,
+      isWatched,
+      actors
+    }); // Create a new movie entity from the DTO outside of the database. 
     return await this.movieRepository.save(movie);
   }
 
-  async update(id: number, movieData: MovieDto): Promise<MovieDto> {
+  async update(id: string, movieData: MovieDto): Promise<MovieEntity> {
     const movie = await this.movieRepository.findOneBy({
       id
     });
@@ -50,7 +76,7 @@ export class MovieService {
     return movie;
   }
 
-  async patch(id: number, movieData: Partial<MovieDto>): Promise<MovieDto> {
+  async patch(id: string, movieData: Partial<MovieDto>): Promise<MovieEntity> {
     const movie = await this.movieRepository.findOneBy({
       id
     })
@@ -63,7 +89,7 @@ export class MovieService {
     return movie;
   }
 
-  async delete(id: number): Promise<number> {
+  async delete(id: string): Promise<string> {
     const movie = await this.movieRepository.findOneBy({
       id
     });
