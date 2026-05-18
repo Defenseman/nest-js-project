@@ -1,7 +1,5 @@
-import { IsArray, IsBoolean, IsDecimal, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Max, Min } from "class-validator";
+import { IsArray, IsBoolean, IsDecimal, IsEnum, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, IsUrl, IsUUID, Max, Min } from "class-validator";
 import { Genre } from "../entities/movie.entity";
-
-
 
 export class MovieDto {
     @IsString()
@@ -23,9 +21,11 @@ export class MovieDto {
     @Max(new Date().getFullYear())
     releaseYear: number;
 
-    @IsDecimal({ decimal_digits: '1' })
+    @IsNumber()
+    @Min(0.0)
+    @Max(10.0)
     @IsOptional()
-    rating: string;
+    rating: number;
 
     @IsEnum(Genre)
     @IsOptional()
@@ -34,4 +34,8 @@ export class MovieDto {
     @IsBoolean()
     @IsOptional()
     isWatched: boolean;
+
+    @IsUrl()
+    @IsOptional()
+    posterUrl: string;
 }

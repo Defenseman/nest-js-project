@@ -1,6 +1,7 @@
 import { ActorEntity } from 'src/actors/entities/actor.entity';
 import { ReviewsEntity } from 'src/reviews/entities/reviews.entity';
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn, OneToMany, ManyToMany, JoinColumn, JoinTable } from 'typeorm';
+import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn, OneToMany, ManyToMany, JoinColumn, JoinTable, OneToOne } from 'typeorm';
+import { MoviePosterEntity } from './poster.entity';
 
 export enum Genre {
     ACTION = "Action",
@@ -39,7 +40,7 @@ export class MovieEntity {
         scale: 1, // Number of digits after the decimal point
         default: 0.0,
     })
-    rating: string;
+    rating: number;
 
     @Column({
         type: "enum",
@@ -55,7 +56,21 @@ export class MovieEntity {
     })
     isWatched: boolean;
 
-    @ManyToMany(() => ActorEntity, (actor) => actor.movies)
+    @Column({
+        name: "poster_id",
+        type: "uuid",
+        nullable: true,
+    })
+    posterId: string; // Foreign key to the MoviePosterEntity, allowing null values for movies without posters
+
+    @OneToOne(() => MoviePosterEntity, (poster) => poster.movie, {
+        onDelete: "CASCADE", 
+        nullable: true
+    }) // Define a one-to-one relationship with the MoviePosterEntity, allowing null values for movies without posters
+    @JoinColumn({ name: "poster_id" }) // Specify the foreign key column name in the MovieEntity
+    poster: MoviePosterEntity | null; // Each movie can have one poster, and we reference the poster's id as the foreign key.
+
+    @ManyToMany(() => ActorEntity, (actor) => actor.movies, {nullable: true})
     @JoinTable({
         name: "movie_actors", // Name of the join table
         joinColumn: {
@@ -67,7 +82,7 @@ export class MovieEntity {
             referencedColumnName: "id", // Name of the primary key column in ActorEntity
         }
     })
-    actors: ActorEntity[]; // Each movie can have multiple actors, and we reference the actor's id as the foreign key.
+    actors: ActorEntity[] | null; // Each movie can have multiple actors, and we reference the actor's id as the foreign key.
 
 
     @OneToMany(() => ReviewsEntity, (review) => review.movie) // Define a one-to-many relationship with the Reviews entity  

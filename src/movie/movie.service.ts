@@ -4,14 +4,17 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { In, Repository } from "typeorm";
 import { MovieDto } from "./dto/movie.dto";
 import { ActorEntity } from "src/actors/entities/actor.entity";
+import { MoviePosterEntity } from "./entities/poster.entity";
 
 @Injectable()
 export class MovieService {
   constructor(
     @InjectRepository(MovieEntity) 
     private readonly movieRepository: Repository<MovieEntity>,
-    @InjectRepository(ActorEntity)
-    private readonly actorsRepository: Repository<ActorEntity>
+    @InjectRepository(ActorEntity)  // Inject the ActorEntity repository to handle actor-related database operations
+    private readonly actorsRepository: Repository<ActorEntity>,
+    @InjectRepository(MoviePosterEntity)
+    private readonly posterRepository: Repository<MoviePosterEntity> 
   ) {}
 
   async findAll(): Promise<MovieEntity[]> {
@@ -26,8 +29,9 @@ export class MovieService {
   }
 
   async findById(id: string): Promise<MovieEntity> {
-    const movie = await this.movieRepository.findOneBy({ 
-      id
+    const movie = await this.movieRepository.findOne({ 
+      where: { id },
+      relations: ["actors", "reviews", "poster"]
     });
 
     if (!movie) {
@@ -38,16 +42,27 @@ export class MovieService {
   }
 
   async create(movieData: MovieDto): Promise<MovieEntity> {
-    const { title, description, releaseYear, rating, genre, isWatched, actorIds } = movieData;
+    const { title, description, releaseYear, rating, genre, isWatched, actorIds, posterUrl } = movieData;
 
-    const actors = await this.actorsRepository.find({
-      where: {
-        id: In(actorIds)
+    let actors: ActorEntity[] | null = null;
+
+    if (actorIds && actorIds.length > 0) {
+      actors = await this.actorsRepository.find({
+        where: {
+          id: In(actorIds)
+        }
+      })
+      
+      if(!actors || actors.length !== actorIds.length) {
+        throw new NotFoundException("One or more actors not found");
       }
-    })
+    }
 
-    if(!actors || actors.length !== actorIds.length) {
-      throw new NotFoundException("One or more actors not found");
+    let poster: MoviePosterEntity | null = null;
+
+    if (posterUrl) {
+      poster = this.posterRepository.create({ url: posterUrl });
+      await this.posterRepository.save(poster);
     }
 
     const movie = this.movieRepository.create({
@@ -57,7 +72,8 @@ export class MovieService {
       rating,
       genre,
       isWatched,
-      actors
+      actors,
+      poster
     }); // Create a new movie entity from the DTO outside of the database. 
     return await this.movieRepository.save(movie);
   }
