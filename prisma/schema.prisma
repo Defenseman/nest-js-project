@@ -1,0 +1,107 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+enum Genre {
+  ACTION
+  COMEDY
+  DRAMA
+  HORROR
+  SCI_FI
+
+  @@map("enum_genres")
+}
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Movie {
+  id          String           @id @default(uuid())
+
+  title       String
+  description String?
+  releaseYear Int           @map("release_year")
+  rating      Float?        @default(0.0)
+  genre       Genre         @default(DRAMA)
+  isWatched   Boolean       @default(false) @map("is_watched")
+
+  poster      MoviePoster?  @relation(fields: [posterId], references: [id])
+  posterId    String?       @unique() @map("poster_id")
+  
+  reviews     Review[]
+  
+  actors      Actor[]       @relation("movie_actors") 
+  
+  directors   Director[]
+  
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  
+  @@index([releaseYear, rating]) // allows for a composite index, reduces the number of queries
+  @@map("movies")
+}
+
+model MoviePoster {
+  id          String @id @default(uuid())
+  
+  url         String
+
+  movie       Movie? @relation()
+  
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("movie_posters")
+}
+
+model Review {
+  id          String      @id @default(uuid())
+  
+  content     String
+  rating      Float
+  
+  movie       Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  movieId     String @map("movie_id")
+  
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@unique([content]) // ensures that there is only one review with the same content
+  @@map("reviews")
+}
+
+model Actor {
+  id          String      @id @default(uuid())
+  
+  name        String
+  age         Int
+  movies      Movie[]  @relation("movie_actors")
+  
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("actors")
+}
+
+model Director {
+  id          String      @id @default(uuid())
+  
+  name        String
+  
+  movies      Movie  @relation(fields: [movieId], references: [id])
+  movieId     String @map("movie_id")
+  
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("directors")
+}

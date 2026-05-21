@@ -1,5 +1,5 @@
 import { IsArray, IsBoolean, IsDecimal, IsEnum, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, IsUrl, IsUUID, Max, Min } from "class-validator";
-import { Genre } from "../entities/movie.entity";
+import { Genre } from "../../../generated/prisma/enums";
 
 export class MovieDto {
     @IsString()
@@ -14,6 +14,11 @@ export class MovieDto {
     @IsUUID("4", { each: true })
     @IsOptional()
     actorIds: string[];
+
+    @IsArray()
+    @IsString({ each: true })
+    @IsOptional()
+    direcrtors: string[];
 
     @IsInt()
     @IsNotEmpty()

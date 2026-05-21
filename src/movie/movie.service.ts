@@ -1,55 +1,68 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
-import { MovieEntity } from "./entities/movie.entity";
-import { InjectRepository } from "@nestjs/typeorm";
-import { In, Repository } from "typeorm";
 import { MovieDto } from "./dto/movie.dto";
-import { ActorEntity } from "src/actors/entities/actor.entity";
-import { MoviePosterEntity } from "./entities/poster.entity";
+import { PrismaService } from "src/prisma/prisma.service";
+import { Actor, Movie, MoviePoster } from "generated/prisma/client";
 
 @Injectable()
 export class MovieService {
-  constructor(
-    @InjectRepository(MovieEntity) 
-    private readonly movieRepository: Repository<MovieEntity>,
-    @InjectRepository(ActorEntity)  // Inject the ActorEntity repository to handle actor-related database operations
-    private readonly actorsRepository: Repository<ActorEntity>,
-    @InjectRepository(MoviePosterEntity)
-    private readonly posterRepository: Repository<MoviePosterEntity> 
-  ) {}
+  constructor(private readonly prismaservice: PrismaService) {}
 
-  async findAll(): Promise<MovieEntity[]> {
-    return await this.movieRepository.find({ 
-      // where: {
-      //   isWatched: false,
-      // }, 
-      order: { 
-        createdAt: "desc" 
-      } 
+  async findAll(): Promise<Movie[]> {
+    return await this.prismaservice.movie.findMany({
+      orderBy: {
+        createdAt: "desc"
+      },
+      include: {
+        actors: {
+          select: {
+            id: true,
+            name: true,
+            age: true
+          }
+        },
+        reviews: true,
+        poster: true
+      },
+
+      take: 10, // how many records to fetch useful for pagination
+      skip: 0   // how many records to skip before fetching, useful for pagination
     });
   }
 
-  async findById(id: string): Promise<MovieEntity> {
-    const movie = await this.movieRepository.findOne({ 
-      where: { id },
-      relations: ["actors", "reviews", "poster"]
+  async findById(id: string): Promise<Movie> {
+    const movie = await this.prismaservice.movie.findUnique({ 
+      where: { id: id},
+      include: {
+        actors: {
+          select: {
+            id: true,
+            name: true,
+            age: true
+          }
+        },
+        reviews: true,
+        poster: true
+      }
     });
 
     if (!movie) {
       throw new NotFoundException()
-    }
+    } 
 
     return movie;
   }
 
-  async create(movieData: MovieDto): Promise<MovieEntity> {
+  async create(movieData: MovieDto): Promise<Movie> {
     const { title, description, releaseYear, rating, genre, isWatched, actorIds, posterUrl } = movieData;
 
-    let actors: ActorEntity[] | null = null;
+    let actors: Actor[] | null = null;
 
     if (actorIds && actorIds.length > 0) {
-      actors = await this.actorsRepository.find({
+      actors = await this.prismaservice.actor.findMany({
         where: {
-          id: In(actorIds)
+          id: {
+            in: actorIds
+          }
         }
       })
       
@@ -58,61 +71,84 @@ export class MovieService {
       }
     }
 
-    let poster: MoviePosterEntity | null = null;
+    return await this.prismaservice.movie.create({
+      data: {
+        title,
+        description,
+        releaseYear,
+        rating,
+        genre,
+        isWatched,
+        actors: {
+          connect: actors?.map(actor => ({ id: actor.id }))
+        },
+        poster: posterUrl ? {
+          create: {
+            url: posterUrl
+          }
+        } : undefined
+      }
+    })
 
-    if (posterUrl) {
-      poster = this.posterRepository.create({ url: posterUrl });
-      await this.posterRepository.save(poster);
-    }
-
-    const movie = this.movieRepository.create({
-      title,
-      description,
-      releaseYear,
-      rating,
-      genre,
-      isWatched,
-      actors,
-      poster
-    }); // Create a new movie entity from the DTO outside of the database. 
-    return await this.movieRepository.save(movie);
   }
 
-  async update(id: string, movieData: MovieDto): Promise<MovieEntity> {
-    const movie = await this.movieRepository.findOneBy({
-      id
+  async update(id: string, movieData: MovieDto): Promise<Movie> {
+    const movie = await this.prismaservice.movie.findUnique({
+      where: {
+        id
+      }
     });
     
     if (!movie) throw new NotFoundException();
 
     Object.assign(movie, movieData) // Update the existing movie entity with the new data from the DTO. This way we preserve the existing entity and only update the fields that are provided in the DTO.
 
-    await this.movieRepository.save(movie); // Save the updated movie entity back to the database.
+    await this.prismaservice.movie.update({
+      where: {
+        id
+      },
+      data: movie
+    });
 
     return movie;
   }
 
-  async patch(id: string, movieData: Partial<MovieDto>): Promise<MovieEntity> {
-    const movie = await this.movieRepository.findOneBy({
-      id
+  async patch(id: string, movieData: Partial<MovieDto>): Promise<Movie> {
+    const movie = await this.prismaservice.movie.findUnique({
+      where: {
+        id
+      }
     })
 
     if (!movie) throw new NotFoundException();
 
     Object.assign(movie, movieData) // Update the existing movie entity with the new data from the DTO. This way we preserve the existing entity and only update the fields that are provided in the DTO.
 
-    await this.movieRepository.save(movie); // Save the updated movie entity back to the database.
+    await this.prismaservice.movie.update({
+      where: {
+        id
+      },
+      data: movie
+    })    
+
     return movie;
   }
 
   async delete(id: string): Promise<string> {
-    const movie = await this.movieRepository.findOneBy({
-      id
+    const movie = await this.prismaservice.movie.findUnique({
+      where: {
+        id
+      }
     });
   
     if (!movie) throw new NotFoundException();
 
-    await this.movieRepository.remove(movie);
-    return movie.id;
+    await this.prismaservice.movie.delete({
+      where: {
+        id: movie.id
+      }
+    });
+
+    return `Movie with id ${id} deleted`;
   }
 }
