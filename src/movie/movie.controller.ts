@@ -2,6 +2,7 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, Put, UseGuards } fro
 import { MovieService } from "./movie.service";
 import { MovieDto } from "./dto/movie.dto";
 import { AdminGuard } from "src/common/guard/admin.guard";
+import { UserAgent } from "src/common/decorators/user-agent.decorator";
 
 @Controller({
   path: "movies",
@@ -17,7 +18,8 @@ export class MovieController {
 
   @UseGuards(AdminGuard)
   @Get(":id")
-  findById(@Param("id") id: string) {
+  findById(@Param("id") id: string, @UserAgent() userAgent: string) {
+    console.log("UserAgent:", userAgent);
     return this.movieService.findById(id); // Convert the id from string to number using the unary plus operator 
   }
 
