@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Post, UsePipes } from "@nestjs/common";
 import { AppService } from "./app.service";
-import { StringToLowerCasePipe } from "./common/middlewares/pipes/string-to-lowercase.pipe";
+import { StringToLowerCasePipe } from "./common/pipes/string-to-lowercase.pipe";
 
 @Controller()
 export class AppController {

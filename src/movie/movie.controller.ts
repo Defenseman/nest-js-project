@@ -1,6 +1,7 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Put } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put, UseGuards } from "@nestjs/common";
 import { MovieService } from "./movie.service";
 import { MovieDto } from "./dto/movie.dto";
+import { AdminGuard } from "src/common/guard/admin.guard";
 
 @Controller({
   path: "movies",
@@ -14,6 +15,7 @@ export class MovieController {
     return this.movieService.findAll();        
   }
 
+  @UseGuards(AdminGuard)
   @Get(":id")
   findById(@Param("id") id: string) {
     return this.movieService.findById(id); // Convert the id from string to number using the unary plus operator 
