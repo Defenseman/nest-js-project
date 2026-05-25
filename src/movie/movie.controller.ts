@@ -1,9 +1,11 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Put, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put, UseGuards, UseInterceptors } from "@nestjs/common";
 import { MovieService } from "./movie.service";
 import { MovieDto } from "./dto/movie.dto";
 import { AdminGuard } from "src/common/guard/admin.guard";
 import { UserAgent } from "src/common/decorators/user-agent.decorator";
+import { LoggingInterceptor } from "src/common/interceptors/logging.interceptor";
 
+@UseInterceptors(LoggingInterceptor)
 @Controller({
   path: "movies",
   host: ["localhost", "127.0.0.1"],
