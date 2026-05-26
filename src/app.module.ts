@@ -1,20 +1,17 @@
-import { MiddlewareConsumer, Module, NestModule } from "@nestjs/common";
+import { Module } from "@nestjs/common";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
-import { MovieModule } from "./movie/movie.module";
 import { ConfigModule } from "@nestjs/config"; // needed to load environment variables from .env file
-import { ReviewsModule } from './reviews/reviews.module';
-import { PosterModule } from './poster/poster.module';
-import { ActorsModule } from './actors/actors.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      isGlobal:true, // Make the configuration available globally
+      isGlobal:true,
     }),
     PrismaModule,
-    MovieModule, ReviewsModule, PosterModule, ActorsModule, PrismaModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

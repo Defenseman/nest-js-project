@@ -10,10 +10,4 @@ export class AppController {
   getHello(): string {
     return this.appService.getHello();
   }
-
-  @UsePipes(StringToLowerCasePipe)
-  @Post()
-  postHello(@Body('name') name: string): string {
-    return `Hello ${name}`;
-  }
 }
