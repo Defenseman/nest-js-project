@@ -7,24 +7,28 @@ import { JwtService } from '@nestjs/jwt';
 import { JwtSignOptions } from '@nestjs/jwt';
 import { JwtPayload } from './interfaces/jwt.interface';
 import { LoginUserDto } from './dto/login-user.dto';
+import { Response } from 'express';
+import { isDev } from 'src/utils/is-dev';
+import { timeToTimeStamp } from 'src/utils/timeToTimeStamp';
 
 @Injectable()
 export class AuthService {
-    private readonly JWT_SECRET: string;
     private readonly JWT_ACCESS_TOKEN_TTL: string;
     private readonly JWT_REFRESH_TOKEN_TTL: string;
+
+    private readonly COOKIE_DOMAIN: string;
 
     constructor(
         private readonly prismaService: PrismaService,
         private readonly configService: ConfigService,
         private readonly jwtService: JwtService
     ) {
-        this.JWT_SECRET = this.configService.getOrThrow('JWT_SECRET');
-        this.JWT_ACCESS_TOKEN_TTL = this.configService.getOrThrow('JWT_ACCESS_TOKEN_TTL');
-        this.JWT_REFRESH_TOKEN_TTL = this.configService.getOrThrow('JWT_REFRESH_TOKEN_TTL');
+        this.JWT_ACCESS_TOKEN_TTL = this.configService.getOrThrow<string>('JWT_ACCESS_TOKEN_TTL');
+        this.JWT_REFRESH_TOKEN_TTL = this.configService.getOrThrow<string>('JWT_REFRESH_TOKEN_TTL');
+        this.COOKIE_DOMAIN = this.configService.getOrThrow<string>('COOKIE_DOMAIN');
     }
 
-    async register(dto: CreateUserDto) {
+    async register(res: Response,dto: CreateUserDto) {
         const { email, name, password } = dto
         const existUser = await this.prismaService.user.findUnique({
             where: {
@@ -41,10 +45,10 @@ export class AuthService {
                 password: await hash(password)
             }
         })
-        return this.generateTokens(user.id)
+        return this.auth(res, user.id)
     }
 
-    async login(dto: LoginUserDto) {
+    async login(res: Response, dto: LoginUserDto) {
         const { email, password } = dto
         const user = await this.prismaService.user.findUnique({
             where: {
@@ -62,10 +66,17 @@ export class AuthService {
 
         if (!isValidPassword) throw new NotFoundException("Пользователь не найден")
 
-        return this.generateTokens(user.id)
+        return this.auth(res, user.id)
     }
 
-    private async generateTokens(id: string) {
+    private auth(res: Response, userId: string) {
+        const { accessToken, refreshToken } = this.generateTokens(userId)
+        this.setCookies(res, refreshToken, new Date(Date.now() + timeToTimeStamp(this.JWT_REFRESH_TOKEN_TTL)))
+
+        return { accessToken }
+    }
+
+    private generateTokens(id: string) {
         const payload: JwtPayload = { id }
         const accessToken = this.jwtService.sign(payload, {
             expiresIn: this.JWT_ACCESS_TOKEN_TTL as JwtSignOptions["expiresIn"]
@@ -77,6 +88,14 @@ export class AuthService {
         return { accessToken, refreshToken }
     }
 
-
+    private setCookies(res: Response, value: string, expires: Date) {
+        res.cookie('refreshToken', value, {
+            httpOnly: true,
+            domain: this.COOKIE_DOMAIN,
+            expires,
+            secure: !isDev(this.configService), // true - allows cookies to be sent over HTTPS only
+            sameSite: isDev(this.configService) ? 'none' : 'lax' 
+        })
+    }
 
 }
