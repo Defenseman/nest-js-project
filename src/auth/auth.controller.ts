@@ -1,9 +1,19 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import type { Request, Response } from 'express';
-import { ApiBadRequestResponse, ApiConflictResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { 
+  ApiBadRequestResponse, 
+  ApiConflictResponse, 
+  ApiNotFoundResponse, 
+  ApiOkResponse, 
+  ApiOperation, 
+  ApiUnauthorizedResponse 
+} from '@nestjs/swagger';
+import { Authorization } from './decorators/authorization.decorator';
+import { Authorized } from './decorators/authorized.decorator';
+import type { User } from 'generated/prisma/client';
 
 @Controller('auth')
 export class AuthController {
@@ -57,5 +67,17 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async logout(@Res({ passthrough: true }) res: Response) {
     return this.authService.logout(res);
+  }
+
+  @Authorization()
+  @ApiOperation({
+    summary: 'Информация о текущем пользователе',
+    description: 'Позволяет получить информацию о текущем авторизованном пользователе'
+  })
+  @ApiOkResponse({ description: 'Информация о пользователе успешно получена' })
+  @ApiUnauthorizedResponse({ description: 'Пользователь не авторизован' })
+  @Get('me')
+  async me(@Authorized('id') user: User) {
+    return user;
   }
 }

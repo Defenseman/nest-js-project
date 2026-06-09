@@ -96,6 +96,18 @@ export class AuthService {
         return { message: 'Успешный выход из системы' }
     }
 
+    async validateUser( id: string) {
+        const user = await this.prismaService.user.findUnique({
+            where: {
+                id,
+            },
+            omit: {password: true}
+        })
+        if (!user) throw new NotFoundException("Пользователь не найден")
+        
+        return user
+    }
+
     private auth(res: Response, userId: string) {
         const { accessToken, refreshToken } = this.generateTokens(userId)
         this.setCookies(res, refreshToken, new Date(Date.now() + timeToTimeStamp(this.JWT_REFRESH_TOKEN_TTL)))
